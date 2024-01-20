@@ -39,6 +39,7 @@ export default function App() {
       
       try {
         const res = await axios.post('/transcribe', blob);
+        console.log(res.data)
         setTranscript(prevTranscript => prevTranscript + '\n' + res.data.text);
       } catch (err) {
         console.error(err);
