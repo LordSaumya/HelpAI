@@ -1,6 +1,6 @@
 import { Button } from "@chakra-ui/react";
 import { Textarea } from "@chakra-ui/react";
-import axios from "axios";
+import axios from 'axios';
 import {
   useReactMediaRecorder,
 } from "react-media-recorder";
@@ -8,32 +8,36 @@ import React from "react";
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
-  const [transcript, setTranscript] = React.useState("");
-  const [answer, setAnswer] = React.useState("");
-  const [record, setRecord] = React.useState(false);
+  const [transcript, setTranscript] = React.useState('');
+  const [answer, setAnswer] = React.useState('');
+  const [startRecord, setStartRecord] = React.useState(false);
+  const [stopRecord, setStopRecord] = React.useState(true);
   // const [transcription, setTranscription] = React.useState('');
   const { status, startRecording, stopRecording, mediaBlobUrl } =
     useReactMediaRecorder({ audio: true });
 
   const handleStartRecording = () => {
     startRecording();
-    setRecord(true);
-  };
+    setStartRecord(true)
+    setStopRecord(false)
+  }
   const handleStopRecording = () => {
-    stopRecording();
-    setIsLoading(true);
-    axios
-      .post("/response/" + transcript)
-      .then((res) => {
+    stopRecording()
+    setStopRecord(true)
+    setStartRecord(false)
+    setIsLoading(true)
+    axios.post('/response', {transcript: transcript})
+      .then(res => {
         setIsLoading(false);
-        setAnswer(res.data.answer);
+        setAnswer(res.data.answer)
       })
-      .catch((err) => {
-        console.error(err);
-      });
+      .catch(err => {
+        console.error(err)
+      })
   };
 
   React.useEffect(() => {
+    console.log(mediaBlobUrl);
     const fetchTranscript = async () => {
       const blob = await fetch(mediaBlobUrl).then((r) => r.blob());
       try {
@@ -47,7 +51,7 @@ export default function App() {
       }
     };
 
-    if (record) {
+    if(startRecord){
       // Initially, fetch the transcript
       fetchTranscript();
 
@@ -56,7 +60,7 @@ export default function App() {
       // Clean up the interval when the component unmounts
       return () => clearInterval(intervalId);
     }
-  }, [record]);
+  }, [startRecord]);
 
   const handleTranscriptChange = (e) => {
     let inputValue = e.target.value;
@@ -70,7 +74,8 @@ export default function App() {
 
   return (
     <>
-      <div className="min-h-screen p-28 flex flex-col">
+      <div className="min-h-screen p-28 flex flex-col max-w-screen-lg justify-center items-center">
+        <h1 className="text-6xl text-center font-bold m-10">Help.AI</h1>
         <Textarea
           value={transcript}
           onChange={handleTranscriptChange}
@@ -80,15 +85,15 @@ export default function App() {
           isReadOnly
         />
         <Button
-          onClick={!record ? handleStartRecording : handleStopRecording}
-          colorScheme={!record ? "green" : "red"}
+          onClick={!startRecord ? handleStartRecording : handleStopRecording}
+          colorScheme={!startRecord ? "green" : "red"}
           size="lg"
           isLoading={isLoading}
           padding={10}
           margin={10}
           marginX={20}
         >
-          {!record ? "Start Recording" : "Stop Recording"}
+          {!startRecord ? "Start Recording" : "Stop Recording"}
         </Button>
         <Textarea
           value={answer}
