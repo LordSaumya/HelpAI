@@ -35,12 +35,22 @@ export default function App() {
 
   React.useEffect(() => {
     const fetchTranscript = async () => {
-      const blob = new Blob([mediaBlobUrl], { type: "audio/wav" })
-      
       try {
-        const res = await axios.post('/transcribe', blob);
-        console.log(res.data)
-        setTranscript(prevTranscript => prevTranscript + '\n' + res.data.text);
+        // Convert the Blob to an ArrayBuffer
+        const arrayBuffer = await new Response(mediaBlobUrl).arrayBuffer();
+
+        // Create a Uint8Array from the ArrayBuffer
+        const uint8Array = new Uint8Array(arrayBuffer);
+
+        // Send the Uint8Array as a buffer in the request
+        const res = await axios.post('/transcribe', uint8Array, {
+          headers: {
+            'Content-Type': 'application/octet-stream', // Set the appropriate content type
+          },
+        });
+
+        console.log(res.data);
+        setTranscript((prevTranscript) => prevTranscript + '\n' + res.data.text);
       } catch (err) {
         console.error(err);
       }
