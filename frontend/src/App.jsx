@@ -1,6 +1,6 @@
 import { Button, ButtonGroup } from "@chakra-ui/react";
 import { Textarea } from "@chakra-ui/react";
-import axios from 'axios';
+import axios from "axios";
 import {
   ReactMediaRecorder,
   useReactMediaRecorder,
@@ -9,8 +9,8 @@ import React from "react";
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
-  const [transcript, setTranscript] = React.useState('');
-  const [answer, setAnswer] = React.useState('');
+  const [transcript, setTranscript] = React.useState("");
+  const [answer, setAnswer] = React.useState("");
   const [record, setRecord] = React.useState(false);
   // const [transcription, setTranscription] = React.useState('');
   const { status, startRecording, stopRecording, mediaBlobUrl } =
@@ -18,40 +18,48 @@ export default function App() {
 
   const handleStartRecording = () => {
     startRecording();
-    setRecord(true)
-  }
+    setRecord(true);
+  };
   const handleStopRecording = () => {
-    stopRecording()
-    setIsLoading(true)
-    axios.post('/response', {transcript: transcript})
-      .then(res => {
+    stopRecording();
+    setIsLoading(true);
+    axios
+      .post("/response", { transcript: transcript })
+      .then((res) => {
         setIsLoading(false);
-        setAnswer(res.data.answer)
+        setAnswer(res.data.answer);
       })
-      .catch(err => {
-        console.error(err)
-      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   React.useEffect(() => {
     const fetchTranscript = async () => {
-      const formData = FormData()
-      const blob = new Blob([mediaBlobUrl], { type: "audio/mp3" })
-      formData.append("file", blob)
-      
+      const formData = new FormData();
+      const blob = new Blob([mediaBlobUrl], { type: "audio/wav" });
+      formData.append("file", blob);
+
       try {
-        const res = await axios.post('/transcribe', formData);
-        console.log(res.data)
-        setTranscript(prevTranscript => prevTranscript + '\n' + res.data.text);
+        const res = await axios.post("/transcribe", formData, {
+          headers: {
+            "Accept": "application/json",
+            "Content-type": "audio/wav",
+          }
+        });
+        console.log(res.data);
+        setTranscript(
+          (prevTranscript) => prevTranscript + "\n" + res.data.text
+        );
       } catch (err) {
         console.error(err);
       }
     };
 
-    if(record){
+    if (record) {
       // Initially, fetch the transcript
       fetchTranscript();
-  
+
       // Set up an interval to fetch the transcript every 10 seconds
       const intervalId = setInterval(fetchTranscript, 10000);
       // Clean up the interval when the component unmounts
@@ -89,7 +97,7 @@ export default function App() {
           margin={10}
           marginX={20}
         >
-          {!record ? "Start Recording" : "Stop Recording"} 
+          {!record ? "Start Recording" : "Stop Recording"}
         </Button>
         <Textarea
           value={answer}
