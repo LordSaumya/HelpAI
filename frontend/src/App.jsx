@@ -43,8 +43,8 @@ export default function App() {
       try {
         const res = await axios.post("/transcribe", formData, {
           headers: {
-            "Accept": "application/json",
-            "Content-type": "audio/wav",
+            // "Accept": "application/json",
+            "Content-type": "html",
           }
         });
         console.log(res.data);
