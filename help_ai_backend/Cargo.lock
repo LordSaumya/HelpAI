@@ -435,6 +435,7 @@ dependencies = [
  "hound",
  "reqwest",
  "rocket",
+ "serde_json",
 ]
 
 [[package]]
