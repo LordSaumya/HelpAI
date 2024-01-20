@@ -26,7 +26,8 @@ export default function App() {
     setStopRecord(true)
     setStartRecord(false)
     setIsLoading(true)
-    axios.post('/response', {transcript: transcript})
+
+    axios.post('/response/' + transcript)
       .then(res => {
         setIsLoading(false);
         setAnswer(res.data.answer)
@@ -36,31 +37,35 @@ export default function App() {
       })
   };
 
+  
   React.useEffect(() => {
-    console.log(mediaBlobUrl);
-    const fetchTranscript = async () => {
+    const fetchTranscript = async (print) => {
       const blob = await fetch(mediaBlobUrl).then((r) => r.blob());
+      
       try {
         const res = await axios.post("/transcribe", blob);
         console.log(res.data);
-        setTranscript(
-          (prevTranscript) => prevTranscript + "\n" + res.data.text
-        );
+        if (print) {
+          setTranscript(
+            (prevTranscript) => prevTranscript + "\n" + res.data.text
+          );
+        }
+        console.log(res.data.text);
+        return (`${res.data.text}` != 'undefined');
       } catch (err) {
         console.error(err);
       }
     };
+    console.log(mediaBlobUrl);
 
-    if(startRecord){
-      // Initially, fetch the transcript
-      fetchTranscript();
-
-      // Set up an interval to fetch the transcript every 10 seconds
-      const intervalId = setInterval(fetchTranscript, 10000);
-      // Clean up the interval when the component unmounts
-      return () => clearInterval(intervalId);
+    if (stopRecord) {
+      // Loop till transcript is loaded
+      let print = false;
+      setInterval(() => {
+        print = fetchTranscript(print);
+      }, 5000);
     }
-  }, [startRecord]);
+  }, []);
 
   const handleTranscriptChange = (e) => {
     let inputValue = e.target.value;
