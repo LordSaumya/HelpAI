@@ -22,7 +22,6 @@ export default function App() {
   const handleStopRecording = () => {
     stopRecording()
     setIsLoading(true)
-    setRecord(false)
     const formData = new FormData();
     formData.append(
       "audio",
@@ -33,10 +32,12 @@ export default function App() {
       .then(res => {
         console.log('data sent')
         setIsLoading(false)
+        setRecord(false)
         console.log(res.data)
       })
       .catch(err => {
         setIsLoading(false)
+        setRecord(false)
         console.error(err)
       })
   };
