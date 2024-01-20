@@ -23,44 +23,41 @@ export default function App() {
   }
   const handleStopRecording = () => {
     stopRecording()
-    setStopRecord(true)
-    setStartRecord(false)
     setIsLoading(true)
-    axios.post('/response', {transcript: transcript})
-      .then(res => {
-        setIsLoading(false);
-        setAnswer(res.data.answer)
+    fetchTranscript()
+    .then(() => {
+      axios.post('/response', {transcript: transcript})
+        .then(res => {
+          setIsLoading(false);
+          setStopRecord(true)
+          setStartRecord(false)
+          setAnswer(res.data.answer)
+        })
+        .catch(err => {
+          setIsLoading(false);
+          setStopRecord(true)
+          setStartRecord(false)
+          console.error(err)
+        })
       })
-      .catch(err => {
-        console.error(err)
-      })
+      .catch((err) => {
+        // Handle any errors
+        console.error(err);
+      });
   };
 
-  React.useEffect(() => {
-    console.log(mediaBlobUrl);
-    const fetchTranscript = async () => {
-      const blob = await fetch(mediaBlobUrl).then((r) => r.blob());
-      try {
-        const res = await axios.post("/transcribe", blob);
-        console.log(res.data);
-        setTranscript(
-          (prevTranscript) => prevTranscript + "\n" + res.data.text
-        );
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    if(startRecord){
-      // Initially, fetch the transcript
-      fetchTranscript();
-
-      // Set up an interval to fetch the transcript every 10 seconds
-      const intervalId = setInterval(fetchTranscript, 10000);
-      // Clean up the interval when the component unmounts
-      return () => clearInterval(intervalId);
+  const fetchTranscript = async () => {
+    const blob = await fetch(mediaBlobUrl).then((r) => r.blob());
+    try {
+      const res = await axios.post("/transcribe", blob);
+      console.log(res.data);
+      setTranscript(
+        (prevTranscript) => prevTranscript + "\n" + res.data.text
+      );
+    } catch (err) {
+      console.error(err);
     }
-  }, [startRecord]);
+  };
 
   const handleTranscriptChange = (e) => {
     let inputValue = e.target.value;
