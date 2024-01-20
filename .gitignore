@@ -3,3 +3,4 @@ help_ai_backend/target
 frontend/node_modules/
 
 frontend/.vite/
+help_ai_backend/config.toml
