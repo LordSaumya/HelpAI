@@ -1,8 +1,7 @@
-import { Button, ButtonGroup } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 import { Textarea } from "@chakra-ui/react";
 import axios from "axios";
 import {
-  ReactMediaRecorder,
   useReactMediaRecorder,
 } from "react-media-recorder";
 import React from "react";
@@ -24,7 +23,7 @@ export default function App() {
     stopRecording();
     setIsLoading(true);
     axios
-      .post("/response", { transcript: transcript })
+      .post("/response/" + transcript)
       .then((res) => {
         setIsLoading(false);
         setAnswer(res.data.answer);
@@ -36,17 +35,9 @@ export default function App() {
 
   React.useEffect(() => {
     const fetchTranscript = async () => {
-      const formData = new FormData();
-      const blob = new Blob([mediaBlobUrl], { type: "audio/wav" });
-      formData.append("file", blob);
-
+      const blob = await fetch(mediaBlobUrl).then((r) => r.blob());
       try {
-        const res = await axios.post("/transcribeTest", formData, {
-          headers: {
-            // "Accept": "application/json",
-            "Content-type": "multipart/form-data",
-          }
-        });
+        const res = await axios.post("/transcribe", blob);
         console.log(res.data);
         setTranscript(
           (prevTranscript) => prevTranscript + "\n" + res.data.text
