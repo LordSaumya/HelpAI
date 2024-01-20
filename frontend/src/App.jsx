@@ -25,6 +25,7 @@ export default function App() {
     setIsLoading(true)
     axios.post('/response', {transcript: transcript})
       .then(res => {
+        setIsLoading(false);
         setAnswer(res.data.answer)
       })
       .catch(err => {
@@ -44,24 +45,21 @@ export default function App() {
       try {
         const res = await axios.post('/transcribe', formData);
         setTranscript(prevTranscript => prevTranscript + '\n' + res.data);
-        setIsLoading(false);
-        setRecord(false);
       } catch (err) {
-        setIsLoading(false);
-        setRecord(false);
         console.error(err);
       }
     };
 
-    // Initially, fetch the transcript
-    fetchTranscript();
-
-    // Set up an interval to fetch the transcript every 10 seconds
-    const intervalId = setInterval(fetchTranscript, 10000);
-
-    // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
-  }, []);
+    if(record){
+      // Initially, fetch the transcript
+      fetchTranscript();
+  
+      // Set up an interval to fetch the transcript every 10 seconds
+      const intervalId = setInterval(fetchTranscript, 10000);
+      // Clean up the interval when the component unmounts
+      return () => clearInterval(intervalId);
+    }
+  }, [record]);
 
   const handleTranscriptChange = (e) => {
     let inputValue = e.target.value;
@@ -72,10 +70,6 @@ export default function App() {
     let inputValue = e.target.value;
     setAnswer(inputValue);
   };
-
-  React.useEffect(() => {
-    
-  }, )
 
   return (
     <>
