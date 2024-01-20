@@ -10,32 +10,35 @@ import React from "react";
 export default function App() {
   const [value, setValue] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [record, setRecord] = React.useState(false);
   // const [transcription, setTranscription] = React.useState('');
   const { status, startRecording, stopRecording, mediaBlobUrl } =
     useReactMediaRecorder({ audio: true });
 
+  const handleStartRecording = () => {
+    startRecording();
+    setRecord(true)
+  }
   const handleStopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      mediaRecorder.onstop = () => {
-        setIsLoading(true)
-        const formData = new FormData();
-        formData.append(
-          "audio",
-          new Blob([recordedChunks], { type: "audio/wav" }),
-          "recorded-audio.wav"
-        );
-        axios.post('/transcribe', formData)
-          .then(res => {
-            setIsLoading(false)
-            console.log(res.data)
-          })
-          .catch(err => {
-            setIsLoading(false)
-            console.error(err)
-          })
-      };
-    }
+    stopRecording()
+    setIsLoading(true)
+    setRecord(false)
+    const formData = new FormData();
+    formData.append(
+      "audio",
+      new Blob([mediaBlobUrl], { type: "audio/wav" }),
+      "recorded-audio.wav"
+    );
+    axios.post('/transcribe', formData)
+      .then(res => {
+        console.log('data sent')
+        setIsLoading(false)
+        console.log(res.data)
+      })
+      .catch(err => {
+        setIsLoading(false)
+        console.error(err)
+      })
   };
 
   const handleInputChange = (e) => {
@@ -54,26 +57,15 @@ export default function App() {
           resize={"none"}
         />
         <Button
-          onClick={startRecording}
-          colorScheme="green"
+          onClick={!record ? handleStartRecording : handleStopRecording}
+          colorScheme={!record ? "green" : "red"}
           size="lg"
           isLoading={isLoading}
           padding={10}
           margin={1}
           marginX={20}
         >
-          Start Recording
-        </Button>
-        <Button
-          onClick={() => {stopRecording; handleStopRecording}}
-          colorScheme="red"
-          size="lg"
-          isLoading={isLoading}
-          padding={10}
-          margin={10}
-          marginX={20}
-        >
-          Stop Recording
+          {!record ? "Start Recording" : "Stop Recording"} 
         </Button>
         <Textarea
           value={value}
