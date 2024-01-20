@@ -8,79 +8,100 @@ import {
 import React from "react";
 
 export default function App() {
-  const [value, setValue] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [transcript, setTranscript] = React.useState('');
+  const [answer, setAnswer] = React.useState('');
+  const [record, setRecord] = React.useState(false);
   // const [transcription, setTranscription] = React.useState('');
   const { status, startRecording, stopRecording, mediaBlobUrl } =
     useReactMediaRecorder({ audio: true });
 
+  const handleStartRecording = () => {
+    startRecording();
+    setRecord(true)
+  }
   const handleStopRecording = () => {
+    stopRecording()
     setIsLoading(true)
-    const formData = new FormData();
-    formData.append(
-      "audio",
-      new Blob([mediaBlobUrl], { type: "audio/wav" }),
-      "recorded-audio.wav"
-    );
-    axios.post('/transcribe', formData)
+    axios.post('/response', {transcript: transcript})
       .then(res => {
-        console.log('data sent')
-        setIsLoading(false)
-        console.log(res.data)
+        setIsLoading(false);
+        setAnswer(res.data.answer)
       })
       .catch(err => {
-        setIsLoading(false)
         console.error(err)
       })
   };
 
-  const handleInputChange = (e) => {
+  React.useEffect(() => {
+    const fetchTranscript = async () => {
+      const formData = new FormData();
+      formData.append(
+        "audio",
+        new Blob([mediaBlobUrl], { type: "audio/wav" }),
+        "recorded-audio.wav"
+      );
+      
+      try {
+        const res = await axios.post('/transcribe', formData);
+        setTranscript(prevTranscript => prevTranscript + '\n' + res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if(record){
+      // Initially, fetch the transcript
+      fetchTranscript();
+  
+      // Set up an interval to fetch the transcript every 10 seconds
+      const intervalId = setInterval(fetchTranscript, 10000);
+      // Clean up the interval when the component unmounts
+      return () => clearInterval(intervalId);
+    }
+  }, [record]);
+
+  const handleTranscriptChange = (e) => {
     let inputValue = e.target.value;
-    setValue(inputValue);
+    setTranscript(inputValue);
+  };
+
+  const handleAnswerChange = (e) => {
+    let inputValue = e.target.value;
+    setAnswer(inputValue);
   };
 
   return (
     <>
       <div className="min-h-screen p-28 flex flex-col">
         <Textarea
-          value={value}
-          onChange={handleInputChange}
-          placeholder="Here is a sample placeholder"
+          value={transcript}
+          onChange={handleTranscriptChange}
+          placeholder="Transcription goes here..."
           size="sm"
           resize={"none"}
+          isReadOnly
         />
         <Button
-          onClick={startRecording}
-          colorScheme="green"
-          size="lg"
-          isLoading={isLoading}
-          padding={10}
-          margin={1}
-          marginX={20}
-        >
-          Start Recording
-        </Button>
-        <Button
-          onClick={() => {
-            stopRecording(); 
-            handleStopRecording()
-          }}
-          colorScheme="red"
+          onClick={!record ? handleStartRecording : handleStopRecording}
+          colorScheme={!record ? "green" : "red"}
           size="lg"
           isLoading={isLoading}
           padding={10}
           margin={10}
           marginX={20}
         >
-          Stop Recording
+          {!record ? "Start Recording" : "Stop Recording"} 
         </Button>
         <Textarea
-          value={value}
-          onChange={handleInputChange}
-          placeholder="Here is a sample placeholder"
-          size="sm"
+          value={answer}
+          onChange={handleAnswerChange}
+          placeholder="Press stop and look here if u need help..."
+          size="2xl"
+          textIndent={10}
           resize={"none"}
           height={200}
+          isReadOnly
         />
       </div>
     </>
