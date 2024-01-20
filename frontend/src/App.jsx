@@ -35,15 +35,10 @@ export default function App() {
 
   React.useEffect(() => {
     const fetchTranscript = async () => {
-      const formData = new FormData();
-      formData.append(
-        "audio",
-        new Blob([mediaBlobUrl], { type: "audio/wav" }),
-        "recorded-audio.wav"
-      );
+      const blob = new Blob([mediaBlobUrl], { type: "audio/wav" })
       
       try {
-        const res = await axios.post('/transcribe', formData);
+        const res = await axios.post('/transcribe', blob);
         setTranscript(prevTranscript => prevTranscript + '\n' + res.data);
       } catch (err) {
         console.error(err);
