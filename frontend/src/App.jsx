@@ -15,27 +15,23 @@ export default function App() {
     useReactMediaRecorder({ audio: true });
 
   const handleStopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      mediaRecorder.onstop = () => {
-        setIsLoading(true)
-        const formData = new FormData();
-        formData.append(
-          "audio",
-          new Blob([recordedChunks], { type: "audio/wav" }),
-          "recorded-audio.wav"
-        );
-        axios.post('/transcribe', formData)
-          .then(res => {
-            setIsLoading(false)
-            console.log(res.data)
-          })
-          .catch(err => {
-            setIsLoading(false)
-            console.error(err)
-          })
-      };
-    }
+    setIsLoading(true)
+    const formData = new FormData();
+    formData.append(
+      "audio",
+      new Blob([mediaBlobUrl], { type: "audio/wav" }),
+      "recorded-audio.wav"
+    );
+    axios.post('/transcribe', formData)
+      .then(res => {
+        console.log('data sent')
+        setIsLoading(false)
+        console.log(res.data)
+      })
+      .catch(err => {
+        setIsLoading(false)
+        console.error(err)
+      })
   };
 
   const handleInputChange = (e) => {
@@ -65,7 +61,10 @@ export default function App() {
           Start Recording
         </Button>
         <Button
-          onClick={() => {stopRecording; handleStopRecording}}
+          onClick={() => {
+            stopRecording(); 
+            handleStopRecording()
+          }}
           colorScheme="red"
           size="lg"
           isLoading={isLoading}
