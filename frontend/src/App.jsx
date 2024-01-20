@@ -41,10 +41,10 @@ export default function App() {
       formData.append("file", blob);
 
       try {
-        const res = await axios.post("/transcribe", formData, {
+        const res = await axios.post("/transcribeTest", formData, {
           headers: {
             // "Accept": "application/json",
-            "Content-type": "html",
+            "Content-type": "multipart/form-data",
           }
         });
         console.log(res.data);
